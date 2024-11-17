@@ -1,0 +1,13 @@
+[database]
+file = "./database.db"
+pool_size = 20
+
+[email]
+server_url = ""
+username = ""
+password = ""
+pool_size = 20
+
+[server]
+request_timeout = 30
+port = 3000
