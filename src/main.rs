@@ -13,6 +13,7 @@ use tower_http::{
 };
 use tracing::{event, span, Level};
 
+mod app_route_handlers;
 mod auth;
 mod config;
 mod default_route_handlers;
