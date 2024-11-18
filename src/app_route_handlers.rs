@@ -26,10 +26,12 @@ pub struct AmendPlayerRequest {
     new_league_id: i64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, FromRow)]
 pub struct League {
+    #[sqlx(rename = "rowid")]
     league_id: i64,
-    league_name: i64,
+    league_name: String,
+    league_tier: i64,
 }
 
 #[derive(Deserialize, FromRow, Serialize)]
@@ -225,7 +227,10 @@ pub async fn generate_league_table(
 pub async fn get_leagues(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<League>>, AppError> {
-    let leagues: Vec<League> = vec![];
+    let leagues: Vec<League> =
+        sqlx::query_as::<_, League>("SELECT rowid,league_name, league_tier FROM leagues")
+            .fetch_all(&state.db_connection_pool)
+            .await?;
     Ok(Json(leagues))
 }
 
