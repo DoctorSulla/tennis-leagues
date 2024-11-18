@@ -31,7 +31,7 @@ pub fn get_open_routes() -> Router<Arc<AppState>> {
             patch(default_route_handlers::password_reset_complete),
         )
         .route(
-            "/api/generateFixtures/:league_id",
+            "/api/generateFixtures",
             get(app_route_handlers::generate_fixtures),
         )
 }
