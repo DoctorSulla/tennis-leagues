@@ -18,5 +18,6 @@ player_two_set_one_games INTEGER,
 player_one_set_two_games INTEGER,
 player_two_set_two_games INTEGER,
 player_one_tiebreak_games INTEGER,
-player_two_tiebreak_games INTEGER
+player_two_tiebreak_games INTEGER,
+completed INTEGER DEFAULT 0
 );

@@ -1,4 +1,4 @@
-use crate::{default_route_handlers, AppState};
+use crate::{app_route_handlers, default_route_handlers, AppState};
 use axum::{
     routing::{get, patch, post},
     Router,
@@ -29,5 +29,9 @@ pub fn get_open_routes() -> Router<Arc<AppState>> {
         .route(
             "/account/resetPassword",
             patch(default_route_handlers::password_reset_complete),
+        )
+        .route(
+            "/api/generateFixtures/:league_id",
+            get(app_route_handlers::generate_fixtures),
         )
 }
