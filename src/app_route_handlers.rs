@@ -1,7 +1,7 @@
 use crate::{default_route_handlers::AppError, AppState};
 use axum::extract::{Json, Path, State};
 use http::StatusCode;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use sqlx::Row;
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ struct AmendPlayerRequest {
     new_league_id: i64,
 }
 
-#[derive(Deserialize, FromRow)]
+#[derive(Deserialize, FromRow, Serialize)]
 struct MatchResult {
     season: i64,
     league_id: i64,
@@ -41,23 +41,40 @@ struct MatchResult {
     completed: i8,
 }
 
-#[derive(Deserialize)]
-struct LeagueTableAndFixtures {
+#[derive(Serialize, Deserialize)]
+pub struct LeagueTableAndFixtures {
     league_table: Vec<LeagueTableRow>,
     completed_fixtures: Vec<MatchResult>,
     uncompleted_fixtures: Vec<MatchResult>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct LeagueTableRow {
     name: String,
-    played: u8,
-    matches_won: u8,
-    matches_lost: u8,
-    sets_won: u8,
-    sets_lost: u8,
-    games_won: u8,
-    games_lost: u8,
+    played: i8,
+    matches_won: i8,
+    matches_lost: i8,
+    sets_won: i8,
+    sets_lost: i8,
+    games_won: i8,
+    games_lost: i8,
+    points: i8,
+}
+
+impl LeagueTableRow {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            played: 0,
+            matches_won: 0,
+            matches_lost: 0,
+            sets_won: 0,
+            sets_lost: 0,
+            games_won: 0,
+            games_lost: 0,
+            points: 0,
+        }
+    }
 }
 
 async fn create_player(
@@ -139,10 +156,12 @@ async fn submit_result(
     Ok(StatusCode::NO_CONTENT)
 }
 
-async fn generate_league_table(
+pub async fn generate_league_table(
     Path(league_id): Path<i64>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<LeagueTableAndFixtures>, AppError> {
+    let player_map = get_player_map(state.clone()).await?;
+
     let uncompleted_fixtures = sqlx::query_as::<_, MatchResult>(
         "SELECT * FROM fixtures WHERE league_id=? and completed=0",
     )
@@ -159,18 +178,18 @@ async fn generate_league_table(
 
     let league_players = get_league_players(league_id, state).await?;
 
-    let league_table = compute_league_table(league_players, &completed_fixtures).await;
+    let league_table = compute_league_table(league_players, player_map, &completed_fixtures).await;
 
     let mut league_table_and_fixtures = LeagueTableAndFixtures {
         completed_fixtures,
         uncompleted_fixtures,
-        league_table: vec![],
+        league_table,
     };
 
     Ok(Json(league_table_and_fixtures))
 }
 
-async fn get_players_map(state: Arc<AppState>) -> Result<HashMap<i64, String>, anyhow::Error> {
+async fn get_player_map(state: Arc<AppState>) -> Result<HashMap<i64, String>, anyhow::Error> {
     let players = sqlx::query("SELECT rowid,name FROM players")
         .fetch_all(&state.db_connection_pool)
         .await?;
@@ -184,9 +203,103 @@ async fn get_players_map(state: Arc<AppState>) -> Result<HashMap<i64, String>, a
 
 async fn compute_league_table(
     league_players: Vec<i64>,
+    player_map: HashMap<i64, String>,
     completed_fixures: &Vec<MatchResult>,
 ) -> Vec<LeagueTableRow> {
-    vec![]
+    let mut league_table = vec![];
+    for player_id in league_players {
+        let mut row = LeagueTableRow::new(
+            player_map
+                .get(&player_id)
+                .expect("Player not found in map")
+                .to_owned(),
+        );
+        // Loop through fixtures
+        for fixture in completed_fixures {
+            if fixture.player_one_id == player_id {
+                // Match logic
+                row.points += 1;
+                // Set 1 logic
+                // Won set
+                if fixture.player_one_set_one_games > fixture.player_two_set_one_games {
+                    row.sets_won += 1;
+                    row.points += 1;
+                }
+                // Lost set
+                else if fixture.player_one_set_one_games < fixture.player_two_set_one_games {
+                    row.sets_lost += 1;
+                }
+                row.games_won += fixture.player_one_set_one_games;
+                // Set 2 logic
+                // Won set
+                if fixture.player_one_set_two_games > fixture.player_two_set_two_games {
+                    row.sets_won += 1;
+                    row.points += 1;
+                }
+                // Lost set
+                else if fixture.player_one_set_two_games < fixture.player_two_set_two_games {
+                    row.sets_lost += 1;
+                }
+                row.games_won += fixture.player_one_set_two_games;
+
+                // Tiebreak if applicable
+                if fixture.player_one_tiebreak_games.is_some()
+                    && fixture.player_two_tiebreak_games.is_some()
+                {
+                    if fixture.player_one_tiebreak_games.unwrap()
+                        > fixture.player_two_tiebreak_games.unwrap()
+                    {
+                        row.sets_won += 1;
+                    } else if fixture.player_one_tiebreak_games.unwrap()
+                        < fixture.player_two_tiebreak_games.unwrap()
+                    {
+                        row.sets_lost += 1;
+                    }
+                }
+            } else if fixture.player_two_id == player_id {
+                // Match logic
+                row.points += 1;
+                // Set 1 logic
+                // Won set
+                if fixture.player_two_set_one_games > fixture.player_one_set_one_games {
+                    row.sets_won += 1;
+                    row.points += 1;
+                }
+                // Lost set
+                else if fixture.player_two_set_one_games < fixture.player_one_set_one_games {
+                    row.sets_lost += 1;
+                }
+                row.games_won += fixture.player_two_set_one_games;
+                // Set 2 logic
+                // Won set
+                if fixture.player_two_set_two_games > fixture.player_one_set_two_games {
+                    row.sets_won += 1;
+                    row.points += 1;
+                }
+                // Lost set
+                else if fixture.player_two_set_two_games < fixture.player_one_set_two_games {
+                    row.sets_lost += 1;
+                }
+                row.games_won += fixture.player_two_set_two_games;
+                // Tiebreak if applicable
+                if fixture.player_one_tiebreak_games.is_some()
+                    && fixture.player_two_tiebreak_games.is_some()
+                {
+                    if fixture.player_one_tiebreak_games.unwrap()
+                        < fixture.player_two_tiebreak_games.unwrap()
+                    {
+                        row.sets_won += 1;
+                    } else if fixture.player_one_tiebreak_games.unwrap()
+                        > fixture.player_two_tiebreak_games.unwrap()
+                    {
+                        row.sets_lost += 1;
+                    }
+                }
+            }
+        }
+        league_table.push(row);
+    }
+    league_table
 }
 
 async fn get_league_players(

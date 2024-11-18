@@ -34,4 +34,8 @@ pub fn get_open_routes() -> Router<Arc<AppState>> {
             "/api/generateFixtures",
             get(app_route_handlers::generate_fixtures),
         )
+        .route(
+            "/api/generateLeagueTable/:league_id",
+            get(app_route_handlers::generate_league_table),
+        )
 }
