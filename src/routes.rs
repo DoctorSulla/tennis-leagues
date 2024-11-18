@@ -16,6 +16,18 @@ pub fn get_protected_routes() -> Router<Arc<AppState>> {
             "/account/changePassword",
             patch(default_route_handlers::change_password),
         )
+        .route(
+            "/api/allFixtures",
+            post(app_route_handlers::generate_fixtures),
+        )
+        .route("/api/result", post(app_route_handlers::submit_result))
+        .route("/api/player", post(app_route_handlers::create_player))
+        .route("/api/league", post(app_route_handlers::create_league))
+        .route(
+            "/api/player",
+            patch(app_route_handlers::add_player_to_league),
+        )
+        .route("/api/submitResult", get(app_route_handlers::submit_result))
 }
 
 pub fn get_open_routes() -> Router<Arc<AppState>> {
@@ -29,10 +41,6 @@ pub fn get_open_routes() -> Router<Arc<AppState>> {
         .route(
             "/account/resetPassword",
             patch(default_route_handlers::password_reset_complete),
-        )
-        .route(
-            "/api/generateFixtures",
-            get(app_route_handlers::generate_fixtures),
         )
         .route(
             "/api/generateLeagueTable/:league_id",
