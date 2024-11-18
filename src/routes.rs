@@ -43,7 +43,8 @@ pub fn get_open_routes() -> Router<Arc<AppState>> {
             patch(default_route_handlers::password_reset_complete),
         )
         .route(
-            "/api/generateLeagueTable/:league_id",
+            "/api/leagueTable/:league_id",
             get(app_route_handlers::generate_league_table),
         )
+        .route("/api/leagues", get(app_route_handlers::get_leagues))
 }

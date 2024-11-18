@@ -26,6 +26,12 @@ pub struct AmendPlayerRequest {
     new_league_id: i64,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct League {
+    league_id: i64,
+    league_name: i64,
+}
+
 #[derive(Deserialize, FromRow, Serialize)]
 pub struct MatchResult {
     season: i64,
@@ -215,6 +221,15 @@ pub async fn generate_league_table(
 
     Ok(Json(league_table_and_fixtures))
 }
+
+pub async fn get_leagues(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Vec<League>>, AppError> {
+    let leagues: Vec<League> = vec![];
+    Ok(Json(leagues))
+}
+
+// Functions below this point are not routes and should be moved elsewhere
 
 async fn get_player_map(state: Arc<AppState>) -> Result<HashMap<i64, String>, anyhow::Error> {
     let players = sqlx::query("SELECT rowid,name FROM players")
