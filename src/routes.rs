@@ -18,7 +18,7 @@ pub fn get_protected_routes() -> Router<Arc<AppState>> {
         )
         .route(
             "/api/allFixtures",
-            post(app_route_handlers::generate_fixtures),
+            get(app_route_handlers::generate_fixtures),
         )
         .route("/api/result", post(app_route_handlers::submit_result))
         .route("/api/player", post(app_route_handlers::create_player))

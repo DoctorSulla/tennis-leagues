@@ -298,6 +298,7 @@ pub async fn login(
         let session_cookie = Cookie::build(("session-key", &session_key))
             .max_age(Duration::days(1000))
             .http_only(true)
+            .path("/")
             .build();
         header_map.insert(
             header::SET_COOKIE,

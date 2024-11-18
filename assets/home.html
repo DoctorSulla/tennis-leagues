@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Document</title>
+        <script src="/assets/js/main.js"></script>
+        <script>
+            async function getLeagues() {
+                let request = await fetch("/api/leagues");
+                let response = await request.json();
+                return response;
+            }
+
+            async function getLeague(league) {
+                document.querySelector("#title").innerHTML = league.league_name;
+                let request = await fetch(
+                    "/api/leagueTable/" + league.league_id,
+                );
+                let response = await request.json();
+                return response;
+            }
+
+            function populateResponse(league) {
+                for (let row of league.league_table) {
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `<td>${row.name}</td><td>${row.matches_won}</td><td>${row.matches_lost}`;
+                    document.querySelector("#league-table").append(tr);
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", async function () {
+                const leagues = await getLeagues();
+                let league = await getLeague(leagues[0]);
+                populateResponse(league);
+            });
+        </script>
+    </head>
+    <body>
+        <h1 id="title"></h1>
+        <table id="league-table"></table>
+        <ul id="completed-fixtures"></ul>
+        <ul id="uncompleted-fixtures"></ul>
+    </body>
+</html>

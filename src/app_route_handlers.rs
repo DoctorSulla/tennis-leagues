@@ -263,6 +263,7 @@ async fn compute_league_table(
         );
         // Loop through fixtures
         for fixture in completed_fixures {
+            let mut match_sets = 0;
             if fixture.player_one_id == player_id {
                 // Match logic
                 row.points += 1;
@@ -270,6 +271,7 @@ async fn compute_league_table(
                 // Won set
                 if fixture.player_one_set_one_games > fixture.player_two_set_one_games {
                     row.sets_won += 1;
+                    match_sets += 1;
                     row.points += 1;
                 }
                 // Lost set
@@ -281,6 +283,7 @@ async fn compute_league_table(
                 // Won set
                 if fixture.player_one_set_two_games > fixture.player_two_set_two_games {
                     row.sets_won += 1;
+                    match_sets += 1;
                     row.points += 1;
                 }
                 // Lost set
@@ -297,6 +300,7 @@ async fn compute_league_table(
                         > fixture.player_two_tiebreak_points.unwrap()
                     {
                         row.sets_won += 1;
+                        match_sets += 1;
                     } else if fixture.player_one_tiebreak_points.unwrap()
                         < fixture.player_two_tiebreak_points.unwrap()
                     {
@@ -310,6 +314,7 @@ async fn compute_league_table(
                 // Won set
                 if fixture.player_two_set_one_games > fixture.player_one_set_one_games {
                     row.sets_won += 1;
+                    match_sets += 1;
                     row.points += 1;
                 }
                 // Lost set
@@ -321,6 +326,7 @@ async fn compute_league_table(
                 // Won set
                 if fixture.player_two_set_two_games > fixture.player_one_set_two_games {
                     row.sets_won += 1;
+                    match_sets += 1;
                     row.points += 1;
                 }
                 // Lost set
@@ -336,6 +342,7 @@ async fn compute_league_table(
                         < fixture.player_two_tiebreak_points.unwrap()
                     {
                         row.sets_won += 1;
+                        match_sets += 1;
                     } else if fixture.player_one_tiebreak_points.unwrap()
                         > fixture.player_two_tiebreak_points.unwrap()
                     {
@@ -343,7 +350,13 @@ async fn compute_league_table(
                     }
                 }
             }
+            if match_sets == 2 {
+                row.matches_won += 1;
+            } else {
+                row.matches_lost += 1;
+            }
         }
+        row.played = row.matches_won + row.matches_lost;
         league_table.push(row);
     }
     league_table.sort_by_key(|f| f.points);

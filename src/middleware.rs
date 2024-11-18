@@ -3,7 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use futures_util::future::BoxFuture;
-use http::HeaderValue;
+use http::{header, HeaderMap, HeaderName, HeaderValue};
 use std::sync::Arc;
 use std::task::{Context, Poll};
 use tower::{Layer, Service};
@@ -67,7 +67,12 @@ where
                 let future = inner.call(request);
                 response = future.await?;
             } else {
-                response = http::StatusCode::UNAUTHORIZED.into_response();
+                let mut headers = HeaderMap::new();
+                headers.insert(
+                    header::LOCATION,
+                    HeaderValue::from_str("/assets/login.html").unwrap(),
+                );
+                response = (headers, http::StatusCode::FOUND).into_response();
             }
             Ok(response)
         })
