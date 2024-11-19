@@ -1,6 +1,6 @@
 use crate::{app_route_handlers, default_route_handlers, AppState};
 use axum::{
-    routing::{get, patch, post},
+    routing::{get, patch, post, put},
     Router,
 };
 use std::sync::Arc;
@@ -20,14 +20,13 @@ pub fn get_protected_routes() -> Router<Arc<AppState>> {
             "/api/allFixtures",
             get(app_route_handlers::generate_fixtures),
         )
-        .route("/api/result", post(app_route_handlers::submit_result))
+        .route("/api/result", put(app_route_handlers::put_result))
         .route("/api/player", post(app_route_handlers::create_player))
         .route("/api/league", post(app_route_handlers::create_league))
         .route(
             "/api/player",
             patch(app_route_handlers::add_player_to_league),
         )
-        .route("/api/submitResult", get(app_route_handlers::submit_result))
 }
 
 pub fn get_open_routes() -> Router<Arc<AppState>> {

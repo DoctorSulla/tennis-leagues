@@ -14,7 +14,8 @@
             }
 
             async function getLeague(league) {
-                document.querySelector("#title").innerHTML = league.league_name;
+                document.querySelector("#league-name").innerHTML =
+                    league.league_name;
                 let request = await fetch(
                     "/api/leagueTable/" + league.league_id,
                 );
@@ -25,8 +26,31 @@
             function populateResponse(league) {
                 for (let row of league.league_table) {
                     let tr = document.createElement("tr");
-                    tr.innerHTML = `<td>${row.name}</td><td>${row.matches_won}</td><td>${row.matches_lost}`;
-                    document.querySelector("#league-table").append(tr);
+                    tr.innerHTML = `
+                      <td>${row.name}</td>
+                      <td>${row.matches_won}</td>
+                      <td>${row.matches_lost}</td>
+                      <td>${row.sets_won}</td>
+                      <td>${row.sets_lost}</td>
+                      <td>${row.games_won}</td>
+                      <td>${row.games_lost}</td>
+                      <td>${row.points}</td>
+                      `;
+                    document.querySelector("#league-table-body").append(tr);
+                }
+
+                for (let fixture of league.completed_fixtures) {
+                    let div = document.createElement("div");
+                    div.classList.add("completed-fixture");
+                    div.innerHTML = `${fixture.player_one_name} vs ${fixture.player_two_name}`;
+                    document.querySelector("#completed-fixtures").append(div);
+                }
+
+                for (let fixture of league.uncompleted_fixtures) {
+                    let div = document.createElement("div");
+                    div.classList.add("uncompleted-fixture");
+                    div.innerHTML = `${fixture.player_one_name} vs ${fixture.player_two_name}`;
+                    document.querySelector("#uncompleted-fixtures").append(div);
                 }
             }
 
@@ -38,9 +62,25 @@
         </script>
     </head>
     <body>
-        <h1 id="title"></h1>
-        <table id="league-table"></table>
-        <ul id="completed-fixtures"></ul>
-        <ul id="uncompleted-fixtures"></ul>
+        <h1 id="league-name"></h1>
+        <table id="league-table">
+            <thead id="league-table-head">
+                <tr>
+                    <th>Name</th>
+                    <th>Matches Won</th>
+                    <th>Matches Lost</th>
+                    <th>Sets Won</th>
+                    <th>Sets Lost</th>
+                    <th>Games Won</th>
+                    <th>Games Lost</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody id="league-table-body"></tbody>
+        </table>
+        <h1>Completed Fixtures</h1>
+        <div id="completed-fixtures"></div>
+        <h1>Scheduled Fixtures</h1>
+        <div id="uncompleted-fixtures"></div>
     </body>
 </html>

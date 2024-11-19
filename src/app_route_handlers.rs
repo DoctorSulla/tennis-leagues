@@ -40,6 +40,8 @@ pub struct MatchResult {
     league_id: i64,
     player_one_id: i64,
     player_two_id: i64,
+    player_one_name: Option<String>,
+    player_two_name: Option<String>,
     player_one_set_one_games: i8,
     player_two_set_one_games: i8,
     player_one_set_two_games: i8,
@@ -157,7 +159,7 @@ pub async fn generate_fixtures(State(state): State<Arc<AppState>>) -> Result<Sta
     Ok(StatusCode::NO_CONTENT)
 }
 
-pub async fn submit_result(
+pub async fn put_result(
     State(state): State<Arc<AppState>>,
     Json(match_result): Json<MatchResult>,
 ) -> Result<StatusCode, AppError> {
@@ -198,14 +200,48 @@ pub async fn generate_league_table(
     let player_map = get_player_map(state.clone()).await?;
 
     let uncompleted_fixtures = sqlx::query_as::<_, MatchResult>(
-        "SELECT * FROM fixtures WHERE league_id=? and completed=0",
+        "SELECT
+        season,
+        f.league_id,
+        player_one_id,
+        player_two_id,
+        player_one_set_one_games,
+        player_one_set_two_games,
+        player_two_set_one_games,
+        player_two_set_two_games,
+        player_one_tiebreak_points,
+        player_two_tiebreak_points,
+        completed,
+        p1.name as 'player_one_name',
+        p2.name as 'player_two_name'
+        FROM fixtures f
+        join players p1 on p1.rowid = player_one_id
+        join players p2 on p2.rowid = player_two_id
+        WHERE f.league_id=1 and completed=0",
     )
     .bind(league_id)
     .fetch_all(&state.db_connection_pool)
     .await?;
 
     let completed_fixtures = sqlx::query_as::<_, MatchResult>(
-        "SELECT * FROM fixtures WHERE league_id=? and completed=1",
+        "SELECT
+        season,
+        f.league_id,
+        player_one_id,
+        player_two_id,
+        player_one_set_one_games,
+        player_one_set_two_games,
+        player_two_set_one_games,
+        player_two_set_two_games,
+        player_one_tiebreak_points,
+        player_two_tiebreak_points,
+        completed,
+        p1.name as 'player_one_name',
+        p2.name as 'player_two_name'
+        FROM fixtures f
+        join players p1 on p1.rowid = player_one_id
+        join players p2 on p2.rowid = player_two_id
+        WHERE f.league_id=1 and completed=1",
     )
     .bind(league_id)
     .fetch_all(&state.db_connection_pool)
