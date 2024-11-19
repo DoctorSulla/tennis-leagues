@@ -170,7 +170,8 @@ pub async fn put_result(
         player_two_set_one_games=?,
         player_two_set_two_games=?,
         player_one_tiebreak_points=?,
-        player_two_tiebreak_points=?
+        player_two_tiebreak_points=?,
+        completed=?
         WHERE
         season=? and
         league_id=? and
@@ -184,6 +185,7 @@ pub async fn put_result(
     .bind(match_result.player_two_set_two_games)
     .bind(match_result.player_one_tiebreak_points)
     .bind(match_result.player_two_tiebreak_points)
+    .bind(match_result.completed)
     .bind(match_result.season)
     .bind(match_result.league_id)
     .bind(match_result.player_one_id)
@@ -300,7 +302,9 @@ async fn compute_league_table(
         // Loop through fixtures
         for fixture in completed_fixures {
             let mut match_sets = 0;
+            let mut involved = false;
             if fixture.player_one_id == player_id {
+                involved = true;
                 // Match logic
                 row.points += 1;
                 // Set 1 logic
@@ -315,6 +319,7 @@ async fn compute_league_table(
                     row.sets_lost += 1;
                 }
                 row.games_won += fixture.player_one_set_one_games;
+                row.games_lost += fixture.player_two_set_one_games;
                 // Set 2 logic
                 // Won set
                 if fixture.player_one_set_two_games > fixture.player_two_set_two_games {
@@ -327,7 +332,7 @@ async fn compute_league_table(
                     row.sets_lost += 1;
                 }
                 row.games_won += fixture.player_one_set_two_games;
-
+                row.games_lost += fixture.player_two_set_two_games;
                 // Tiebreak if applicable
                 if fixture.player_one_tiebreak_points.is_some()
                     && fixture.player_two_tiebreak_points.is_some()
@@ -337,6 +342,7 @@ async fn compute_league_table(
                     {
                         row.sets_won += 1;
                         match_sets += 1;
+                        row.points += 1;
                     } else if fixture.player_one_tiebreak_points.unwrap()
                         < fixture.player_two_tiebreak_points.unwrap()
                     {
@@ -344,6 +350,7 @@ async fn compute_league_table(
                     }
                 }
             } else if fixture.player_two_id == player_id {
+                involved = true;
                 // Match logic
                 row.points += 1;
                 // Set 1 logic
@@ -358,6 +365,8 @@ async fn compute_league_table(
                     row.sets_lost += 1;
                 }
                 row.games_won += fixture.player_two_set_one_games;
+                row.games_lost += fixture.player_one_set_one_games;
+
                 // Set 2 logic
                 // Won set
                 if fixture.player_two_set_two_games > fixture.player_one_set_two_games {
@@ -370,6 +379,7 @@ async fn compute_league_table(
                     row.sets_lost += 1;
                 }
                 row.games_won += fixture.player_two_set_two_games;
+                row.games_lost += fixture.player_one_set_two_games;
                 // Tiebreak if applicable
                 if fixture.player_one_tiebreak_points.is_some()
                     && fixture.player_two_tiebreak_points.is_some()
@@ -379,6 +389,7 @@ async fn compute_league_table(
                     {
                         row.sets_won += 1;
                         match_sets += 1;
+                        row.points += 1;
                     } else if fixture.player_one_tiebreak_points.unwrap()
                         > fixture.player_two_tiebreak_points.unwrap()
                     {
@@ -388,14 +399,14 @@ async fn compute_league_table(
             }
             if match_sets == 2 {
                 row.matches_won += 1;
-            } else {
+            } else if involved {
                 row.matches_lost += 1;
             }
         }
         row.played = row.matches_won + row.matches_lost;
         league_table.push(row);
     }
-    league_table.sort_by_key(|f| f.points);
+    league_table.sort_by(|a, b| b.points.cmp(&a.points));
     league_table
 }
 

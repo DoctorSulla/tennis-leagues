@@ -4,7 +4,50 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-        <title>Document</title>
+        <title>Wrexham Winter Box League</title>
+        <style>
+            body {
+                font-family: Arial;
+            }
+            table,
+            td,
+            tr,
+            th {
+                border-top: 1px solid rgb(230, 230, 230);
+                border-bottom: 1px solid rgb(230, 230, 230);
+                border-collapse: collapse;
+                padding: 5px;
+            }
+            td,
+            th {
+                text-align: center;
+            }
+
+            #league-table thead {
+                background-color: rgb(230, 230, 230);
+            }
+
+            .league-position {
+                color: blue;
+                font-weight: bold;
+                padding: 7px;
+                background-color: red;
+                color: white;
+                width: fit-content;
+                margin: auto;
+            }
+
+            .result-header {
+                background-color: skyblue;
+            }
+
+            .completed-fixture {
+                margin: 0 15px;
+            }
+            #completed-fixtures {
+                display: flex;
+            }
+        </style>
         <script src="/assets/js/main.js"></script>
         <script>
             async function getLeagues() {
@@ -24,25 +67,38 @@
             }
 
             function populateResponse(league) {
+                let position = 1;
                 for (let row of league.league_table) {
                     let tr = document.createElement("tr");
                     tr.innerHTML = `
+                      <td><div class='league-position'>${position}</div></td>
                       <td>${row.name}</td>
+                      <td>${row.played}</td>
                       <td>${row.matches_won}</td>
                       <td>${row.matches_lost}</td>
                       <td>${row.sets_won}</td>
                       <td>${row.sets_lost}</td>
                       <td>${row.games_won}</td>
                       <td>${row.games_lost}</td>
-                      <td>${row.points}</td>
+                      <td><b>${row.points}</b></td>
                       `;
                     document.querySelector("#league-table-body").append(tr);
+                    position++;
                 }
 
                 for (let fixture of league.completed_fixtures) {
                     let div = document.createElement("div");
                     div.classList.add("completed-fixture");
-                    div.innerHTML = `${fixture.player_one_name} vs ${fixture.player_two_name}`;
+                    div.innerHTML = `<table>
+                      <tr class='result-header'><th></th><th>1</th><th>2</th><th>3</th></tr>
+                      <tr><td>${fixture.player_one_name}</td><td>${fixture.player_one_set_one_games}</td><td>${fixture.player_one_set_two_games}</td>
+                      <td>${fixture.player_one_tiebreak_points ? fixture.player_one_tiebreak_points : " - "}</td>
+                      </tr>
+                      <tr><td>${fixture.player_two_name}</td><td>${fixture.player_two_set_one_games}</td><td>${fixture.player_two_set_two_games}</td>
+                      <td>${fixture.player_two_tiebreak_points ? fixture.player_two_tiebreak_points : " - "}</td>
+                      </tr>
+                      </table>
+                      `;
                     document.querySelector("#completed-fixtures").append(div);
                 }
 
@@ -66,7 +122,9 @@
         <table id="league-table">
             <thead id="league-table-head">
                 <tr>
+                    <th>Position</th>
                     <th>Name</th>
+                    <th>Played</th>
                     <th>Matches Won</th>
                     <th>Matches Lost</th>
                     <th>Sets Won</th>
@@ -78,7 +136,7 @@
             </thead>
             <tbody id="league-table-body"></tbody>
         </table>
-        <h1>Completed Fixtures</h1>
+        <h1>Results</h1>
         <div id="completed-fixtures"></div>
         <h1>Scheduled Fixtures</h1>
         <div id="uncompleted-fixtures"></div>
