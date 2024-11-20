@@ -3,8 +3,9 @@
     <head>
         <title>Register</title>
 
-        <link rel="stylesheet" href="/assets/css/main.css" />
-        <script src="/assets/js/main.js"></script>
+        <link rel="stylesheet" href="/css/main.css" />
+        <script src="/js/json_forms.js"></script>
+        <script src="/js/main.js"></script>
     </head>
 
     <body>
@@ -15,12 +16,12 @@
             action="/account/register"
         >
             <h2>Register</h2>
-            <input type="text" id="email" placeholder="Email address" />
-            <input type="text" id="username" placeholder="Username" />
-            <input type="password" id="password" placeholder="Password" />
+            <input type="text" name="email" placeholder="Email address" />
+            <input type="text" name="username" placeholder="Username" />
+            <input type="password" name="password" placeholder="Password" />
             <input
                 type="password"
-                id="confirm_password"
+                name="confirm_password"
                 placeholder="Confirm password"
             />
             <button type="submit">Register</button>

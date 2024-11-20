@@ -3,6 +3,7 @@ use axum::extract::{Json, Path, State};
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
+use sqlx::query::Query;
 use sqlx::Row;
 use std::collections::HashMap;
 use std::sync::Arc;

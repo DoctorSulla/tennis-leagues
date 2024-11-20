@@ -1,0 +1,75 @@
+<style>
+
+table,
+td,
+tr,
+th {
+    border-top: 1px solid rgb(230, 230, 230);
+    border-bottom: 1px solid rgb(230, 230, 230);
+    border-collapse: collapse;
+    padding: 5px;
+}
+td,
+th {
+    text-align: center;
+}
+</style>
+<script src="/js/json_forms.js"></script>
+<script>
+    async function getLeagues() {
+        let request = await fetch("/api/leagues");
+        let response = await request.json();
+        return response;
+    }
+
+    async function getLeague(league) {
+        document.querySelector("#league-name").innerHTML = league.league_name;
+        let request = await fetch("/api/admin/leagueTable/" + league.league_id);
+        if (!request.ok) {
+            location.assign("/login.html");
+        }
+        let response = await request.json();
+        return response;
+    }
+
+    function buildForms(league) {
+      for (let fixture of league.uncompleted_fixtures) {
+          let div = document.createElement("div");
+          div.innerHTML = `<form action='/api/result' data-method='put'><table>
+            <tr class='result-header'><th></th><th>1</th><th>2</th><th>3</th></tr>
+            <tr><td>${fixture.player_one_name}</td><td><input type="number" value="0" min="0" max="7" placeholder="0" name="player_one_set_one_games" required></td><td><input type="number" value="0" min="0" max="7" placeholder="0" name="player_one_set_two_games" required></td>
+            <td><input type="number" min="0" max="10" placeholder="0" name="player_one_tiebreak_points"></td>
+            </tr>
+            <tr><td>${fixture.player_two_name}</td><td><input type="number" value="0" min="0" max="7" placeholder="0" name="player_two_set_one_games" required></td><td><input type="number" value="0" min="0" max="7" placeholder="0" name="player_two_set_two_games" required></td>
+            <td><input type="number" min="0" max="10" placeholder="0" name="player_two_tiebreak_points"></td>
+            </tr>
+            </table>
+            <button>Submit Result</button>
+            <input style="display:none" type="number" name="player_one_id" value="${fixture.player_one_id}">
+            <input style="display:none" type="number" name="player_two_id" value="${fixture.player_two_id}">
+            <input style="display:none" type="number" name="league_id" value="${fixture.league_id}">
+            <input style="display:none" type="number" name="season" value="${fixture.season}">
+            <input style="display:none" type="number" name="completed" value="1" readonly>
+            </form>
+            `;
+          document.querySelector("#result-forms").append(div);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+        const leagues = await getLeagues();
+        let league = await getLeague(leagues[0]);
+        buildForms(league);
+        const forms = document.querySelectorAll("form");
+        for (const form of forms) {
+          form.addEventListener("submit", async function (e) {
+            await jsonForms(e);
+          });
+        }
+    });
+</script>
+<body>
+<div id="league-name"></div>
+<div id="result-forms"></div>
+</body>
+</html>

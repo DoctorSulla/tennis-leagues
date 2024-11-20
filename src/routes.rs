@@ -26,6 +26,10 @@ pub fn get_protected_routes() -> Router<Arc<AppState>> {
             "/api/player",
             patch(app_route_handlers::add_player_to_league),
         )
+        .route(
+            "/api/admin/leagueTable/:league_id",
+            get(app_route_handlers::generate_league_table),
+        )
 }
 
 pub fn get_open_routes() -> Router<Arc<AppState>> {
