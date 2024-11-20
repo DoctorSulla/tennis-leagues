@@ -59,7 +59,7 @@ pub fn get_app(state: Arc<AppState>) -> Router {
         .layer(ServiceBuilder::new().layer(ValidateSessionLayer::new(state.clone())))
         .merge(open_routes)
         .with_state(state.clone())
-        .nest_service("/assets", assets)
+        .nest_service("/", assets)
         .layer(
             ServiceBuilder::new().layer(TimeoutLayer::new(Duration::from_secs(
                 state.config.server.request_timeout,

@@ -187,11 +187,6 @@ pub struct VerificationDetails {
     code: String,
 }
 
-pub async fn hello_world(user: User) -> Result<Html<String>, AppError> {
-    println!("The authenticated user is {:?}", user);
-    Ok(Html("Hello, what are you doing?".to_string()))
-}
-
 pub async fn register(
     State(state): State<Arc<AppState>>,
     Json(registration_details): Json<RegistrationDetails>,
