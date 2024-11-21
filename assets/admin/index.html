@@ -1,58 +1,63 @@
-<style>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Submit Results - Admin</title>
+        <style>
+            table,
+            td,
+            tr,
+            th {
+                border-top: 1px solid rgb(230, 230, 230);
+                border-bottom: 1px solid rgb(230, 230, 230);
+                border-collapse: collapse;
+                padding: 5px;
+            }
+            td,
+            th {
+                text-align: center;
+            }
+        </style>
+        <script src="/js/json_forms.js"></script>
+        <script>
+            let leagues;
+            async function getLeagues() {
+                let request = await fetch("/api/leagues");
+                let response = await request.json();
+                return response;
+            }
 
-table,
-td,
-tr,
-th {
-    border-top: 1px solid rgb(230, 230, 230);
-    border-bottom: 1px solid rgb(230, 230, 230);
-    border-collapse: collapse;
-    padding: 5px;
-}
-td,
-th {
-    text-align: center;
-}
-</style>
-<script src="/js/json_forms.js"></script>
-<script>
+            function populateLeagues(leagues) {
+                const selector = document.querySelector("#league-selector");
+                if (localStorage.getItem("currentLeague")) {
+                    let currentLeague = localStorage.getItem("currentLeague");
+                    selector.innerHTML += `<option value="${leagues[currentLeague - 1].league_id}">${leagues[currentLeague - 1].league_name}</option>`;
+                    //leagues.splice(currentLeague,1);
+                }
+                for (let league of leagues) {
+                    selector.innerHTML += `<option value="${league.league_id}">${league.league_name}</option>`;
+                }
+            }
 
-    let leagues;
-    async function getLeagues() {
-        let request = await fetch("/api/leagues");
-        let response = await request.json();
-        return response;
-    }
+            async function getLeague(league) {
+                document.querySelector("#league-name").innerHTML =
+                    league.league_name;
+                let request = await fetch(
+                    "/api/admin/leagueTable/" + league.league_id,
+                );
+                if (!request.ok) {
+                    location.assign("/login.html");
+                }
+                let response = await request.json();
+                return response;
+            }
 
-    function populateLeagues(leagues) {
-
-      const selector = document.querySelector("#league-selector");
-      if (localStorage.getItem("currentLeague")) {
-        let currentLeague = localStorage.getItem("currentLeague");
-        selector.innerHTML += `<option value="${leagues[currentLeague-1].league_id}">${leagues[currentLeague-1].league_name}</option>`;
-        //leagues.splice(currentLeague,1);
-      }
-      for (let league of leagues) {
-
-        selector.innerHTML += `<option value="${league.league_id}">${league.league_name}</option>`;
-      }
-    }
-
-    async function getLeague(league) {
-        document.querySelector("#league-name").innerHTML = league.league_name;
-        let request = await fetch("/api/admin/leagueTable/" + league.league_id);
-        if (!request.ok) {
-            location.assign("/login.html");
-        }
-        let response = await request.json();
-        return response;
-    }
-
-    function buildForms(league) {
-      document.querySelector("#result-forms").innerHTML = "";
-      for (let fixture of league.uncompleted_fixtures) {
-          let div = document.createElement("div");
-          div.innerHTML = `<form action='/api/result' data-method='put'><table>
+            function buildForms(league) {
+                document.querySelector("#result-forms").innerHTML = "";
+                for (let fixture of league.uncompleted_fixtures) {
+                    let div = document.createElement("div");
+                    div.innerHTML = `<form action='/api/result' data-method='put'><table>
             <tr class='result-header'><th></th><th>1</th><th>2</th><th>3</th></tr>
             <tr><td>${fixture.player_one_name}</td><td><input type="number" value="0" min="0" max="7" placeholder="0" name="player_one_set_one_games" required></td><td><input type="number" value="0" min="0" max="7" placeholder="0" name="player_one_set_two_games" required></td>
             <td><input type="number" min="0" max="10" placeholder="0" name="player_one_tiebreak_points"></td>
@@ -69,42 +74,46 @@ th {
             <input style="display:none" type="number" name="completed" value="1" readonly>
             </form>
             `;
-          document.querySelector("#result-forms").append(div);
-      }
-    }
+                    document.querySelector("#result-forms").append(div);
+                }
+            }
 
-    document.addEventListener("DOMContentLoaded", async function () {
-        let currentLeague = localStorage.getItem("currentLeague") ? localStorage.getItem("currentLeague") : 0;
-        leagues = await getLeagues();
-        // Populate select form field
-        populateLeagues(leagues);
-        let league = await getLeague(leagues[currentLeague-1]);
-        buildForms(league);
-        const forms = document.querySelectorAll("form");
-        for (const form of forms) {
-          form.addEventListener("submit", async function (e) {
-            await jsonForms(e);
-          });
-        }
-        document.querySelector("#league-selector").addEventListener("change",async function() {
-          localStorage.setItem("currentLeague",this.value);
-          let league = await getLeague(leagues[this.value-1]);
-          buildForms(league);
-          const forms = document.querySelectorAll("form");
-          for (const form of forms) {
-            form.addEventListener("submit", async function (e) {
-              await jsonForms(e);
+            document.addEventListener("DOMContentLoaded", async function () {
+                let currentLeague = localStorage.getItem("currentLeague")
+                    ? localStorage.getItem("currentLeague")
+                    : 1;
+                leagues = await getLeagues();
+                // Populate select form field
+                populateLeagues(leagues);
+                let league = await getLeague(leagues[currentLeague - 1]);
+                buildForms(league);
+                const forms = document.querySelectorAll("form");
+                for (const form of forms) {
+                    form.addEventListener("submit", async function (e) {
+                        await jsonForms(e);
+                    });
+                }
+                document
+                    .querySelector("#league-selector")
+                    .addEventListener("change", async function () {
+                        localStorage.setItem("currentLeague", this.value);
+                        let league = await getLeague(leagues[this.value - 1]);
+                        buildForms(league);
+                        const forms = document.querySelectorAll("form");
+                        for (const form of forms) {
+                            form.addEventListener("submit", async function (e) {
+                                await jsonForms(e);
+                            });
+                        }
+                    });
             });
-          }
-        })
-    });
-</script>
-<body>
-    <form>
-    <select id="league-selector">
-    </select>
-    </form>
-<div id="league-name"></div>
-<div id="result-forms"></div>
-</body>
+        </script>
+    </head>
+    <body>
+        <form>
+            <select id="league-selector"></select>
+        </form>
+        <div id="league-name"></div>
+        <div id="result-forms"></div>
+    </body>
 </html>
