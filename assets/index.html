@@ -5,192 +5,49 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <title>Wrexham Winter Box League</title>
-        <style>
-            body,
-            html {
-                margin: 0;
-            }
-            h1 {
-                margin-bottom: 5px;
-                margin-top: 0;
-            }
-            main {
-                margin: auto;
-                width: 100%;
-                max-width: 900px;
-                min-height: 100vh;
-                background-color: white;
-                padding: 0 10px;
-            }
-            body {
-                background-color: rgb(240, 240, 240);
-                font-family: Arial;
-            }
-            table,
-            td,
-            tr,
-            th {
-                border-top: 1px solid rgb(230, 230, 230);
-                border-bottom: 1px solid rgb(230, 230, 230);
-                border-collapse: collapse;
-                padding: 5px;
-            }
-            td,
-            th {
-                text-align: center;
-            }
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+        />
 
-            #league-table {
-                margin-bottom: 10px;
-            }
-
-            #league-table tbody tr:hover {
-                background-color: rgb(240, 240, 240);
-            }
-
-            #league-table thead {
-                background-color: rgb(230, 230, 230);
-            }
-
-            .league-position {
-                color: blue;
-                font-weight: bold;
-                padding: 7px;
-                background-color: red;
-                color: white;
-                width: fit-content;
-                margin: auto;
-            }
-
-            .result-header {
-                background-color: skyblue;
-            }
-
-            .completed-fixture {
-                margin: 0 15px;
-            }
-            #completed-fixtures {
-                display: flex;
-            }
-            .uncompleted-fixture {
-                text-align: center;
-                border-top: 1px solid rgb(230, 230, 230);
-                border-bottom: 1px solid rgb(230, 230, 230);
-                padding: 10px 0;
-            }
-
-            .uncompleted-fixture:nth-child(odd) {
-                background-color: rgb(245, 245, 245);
-            }
-        </style>
-        <script>
-            async function getLeagues() {
-                let request = await fetch("/api/leagues");
-                let response = await request.json();
-                return response;
-            }
-
-            async function getLeague(league) {
-                document.querySelector("#league-name").innerHTML =
-                    league.league_name;
-                let request = await fetch(
-                    "/api/leagueTable/" + league.league_id,
-                );
-                let response = await request.json();
-                return response;
-            }
-
-            function populateResponse(league) {
-                let position = 1;
-                for (let row of league.league_table) {
-                    let tr = document.createElement("tr");
-                    tr.innerHTML = `
-                      <td><div class='league-position'>${position}</div></td>
-                      <td>${row.name}</td>
-                      <td>${row.played}</td>
-                      <td>${row.matches_won}</td>
-                      <td>${row.matches_lost}</td>
-                      <td>${row.sets_won}</td>
-                      <td>${row.sets_lost}</td>
-                      <td>${row.games_won}</td>
-                      <td>${row.games_lost}</td>
-                      <td><b>${row.points}</b></td>
-                      `;
-                    document.querySelector("#league-table-body").append(tr);
-                    position++;
-                }
-
-                let completedFixturesDiv = document.querySelector(
-                    "#completed-fixtures",
-                );
-                if (league.completed_fixtures.length == 0) {
-                    completedFixturesDiv.innerHTML =
-                        "<p>No completed fixtures yet.</p>";
-                } else {
-                    completedFixturesDiv.innerHTML = "";
-                }
-
-                for (let fixture of league.completed_fixtures) {
-                    let div = document.createElement("div");
-                    div.classList.add("completed-fixture");
-                    div.innerHTML = `<table>
-                      <tr class='result-header'><th></th><th>1</th><th>2</th><th>3</th></tr>
-                      <tr><td>${fixture.player_one_name}</td><td>${fixture.player_one_set_one_games}</td><td>${fixture.player_one_set_two_games}</td>
-                      <td>${fixture.player_one_tiebreak_points ? fixture.player_one_tiebreak_points : " - "}</td>
-                      </tr>
-                      <tr><td>${fixture.player_two_name}</td><td>${fixture.player_two_set_one_games}</td><td>${fixture.player_two_set_two_games}</td>
-                      <td>${fixture.player_two_tiebreak_points ? fixture.player_two_tiebreak_points : " - "}</td>
-                      </tr>
-                      </table>
-                      `;
-                    completedFixturesDiv.append(div);
-                }
-
-                let uncompletedFixturesDiv = document.querySelector(
-                    "#uncompleted-fixtures",
-                );
-                if (league.uncompleted_fixtures.length == 0) {
-                    uncompletedFixturesDiv.innerHTML =
-                        "<p>All fixtures are complete.</p>";
-                } else {
-                    uncompletedFixturesDiv.innerHTML = "";
-                }
-
-                for (let fixture of league.uncompleted_fixtures) {
-                    let div = document.createElement("div");
-                    div.classList.add("uncompleted-fixture");
-                    div.innerHTML = `${fixture.player_one_name} vs ${fixture.player_two_name}`;
-                    uncompletedFixturesDiv.append(div);
-                }
-            }
-
-            document.addEventListener("DOMContentLoaded", async function () {
-                const leagues = await getLeagues();
-                let league = await getLeague(leagues[4]);
-                populateResponse(league);
-            });
-        </script>
+        <link rel="stylesheet" href="/css/main.css" />
+        <script src="/js/tennis_leagues.js"></script>
     </head>
-    <body>
+    <div>
         <main>
-            <h1 id="league-name"></h1>
-            <table id="league-table">
-                <thead id="league-table-head">
-                    <tr>
-                        <th>Position</th>
-                        <th>Name</th>
-                        <th>Played</th>
-                        <th>Matches Won</th>
-                        <th>Matches Lost</th>
-                        <th>Sets Won</th>
-                        <th>Sets Lost</th>
-                        <th>Games Won</th>
-                        <th>Games Lost</th>
-                        <th>Points</th>
-                    </tr>
-                </thead>
-                <tbody id="league-table-body"></tbody>
-            </table>
+        <div id="league-title"><h1 id="league-name"></h1><img id="league-logo" src=""></div>
+            <div id="league-table-container">
+                <div id="left-nav">&larr;</div>
+                <table id="league-table">
+                    <thead id="league-table-head">
+                        <tr class="mobile-headings">
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>P</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>SF</th>
+                            <th>SA</th>
+                            <th>Total</th>
+                        </tr>
+
+                        <tr class="desktop-headings">
+                            <th>Position</th>
+                            <th>Name</th>
+                            <th>Played</th>
+                            <th>Won</th>
+                            <th>Lost</th>
+                            <th>Sets For</th>
+                            <th>Sets Against</th>
+                            <th>Games For</th>
+                            <th>Games Against</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="league-table-body"></tbody>
+                </table>
+                <div id="right-nav">&rarr;</div>
+            </div>
             <h1>Results</h1>
             <div id="completed-fixtures"></div>
             <h1>Scheduled Fixtures</h1>

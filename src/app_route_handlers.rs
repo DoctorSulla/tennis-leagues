@@ -50,7 +50,7 @@ pub struct MatchResult {
     player_one_tiebreak_points: Option<i8>,
     player_two_tiebreak_points: Option<i8>,
     completed: i8,
-    winner: Option<i8>,
+    winner: Option<i64>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -165,6 +165,37 @@ pub async fn put_result(
     State(state): State<Arc<AppState>>,
     Json(match_result): Json<MatchResult>,
 ) -> Result<StatusCode, AppError> {
+    let mut winner: Option<i64> = None;
+    let mut p1_sets = 0;
+    let mut p2_sets = 0;
+    if match_result.completed == 1 {
+        if match_result.player_one_set_one_games > match_result.player_two_set_one_games {
+            p1_sets += 1;
+        } else {
+            p2_sets += 1;
+        }
+
+        if match_result.player_one_set_two_games > match_result.player_two_set_two_games {
+            p1_sets += 1;
+        } else {
+            p2_sets += 1;
+        }
+        if match_result.player_one_tiebreak_points.is_some()
+            && match_result.player_two_tiebreak_points.is_some()
+        {
+            if match_result.player_one_tiebreak_points > match_result.player_two_tiebreak_points {
+                p1_sets += 1;
+            } else {
+                p2_sets += 1;
+            }
+        }
+    }
+
+    if p1_sets == 2 {
+        winner = Some(match_result.player_one_id);
+    } else if p2_sets == 2 {
+        winner = Some(match_result.player_two_id);
+    }
     sqlx::query(
         "UPDATE FIXTURES SET
         player_one_set_one_games=?,
@@ -173,7 +204,8 @@ pub async fn put_result(
         player_two_set_two_games=?,
         player_one_tiebreak_points=?,
         player_two_tiebreak_points=?,
-        completed=?
+        completed=?,
+        winner=?
         WHERE
         season=? and
         league_id=? and
@@ -188,6 +220,7 @@ pub async fn put_result(
     .bind(match_result.player_one_tiebreak_points)
     .bind(match_result.player_two_tiebreak_points)
     .bind(match_result.completed)
+    .bind(winner)
     .bind(match_result.season)
     .bind(match_result.league_id)
     .bind(match_result.player_one_id)

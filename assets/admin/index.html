@@ -27,7 +27,13 @@ th {
     function populateLeagues(leagues) {
 
       const selector = document.querySelector("#league-selector");
+      if (localStorage.getItem("currentLeague")) {
+        let currentLeague = localStorage.getItem("currentLeague");
+        selector.innerHTML += `<option value="${leagues[currentLeague-1].league_id}">${leagues[currentLeague-1].league_name}</option>`;
+        //leagues.splice(currentLeague,1);
+      }
       for (let league of leagues) {
+
         selector.innerHTML += `<option value="${league.league_id}">${league.league_name}</option>`;
       }
     }
@@ -68,9 +74,11 @@ th {
     }
 
     document.addEventListener("DOMContentLoaded", async function () {
+        let currentLeague = localStorage.getItem("currentLeague") ? localStorage.getItem("currentLeague") : 0;
         leagues = await getLeagues();
+        // Populate select form field
         populateLeagues(leagues);
-        let league = await getLeague(leagues[0]);
+        let league = await getLeague(leagues[currentLeague-1]);
         buildForms(league);
         const forms = document.querySelectorAll("form");
         for (const form of forms) {
@@ -79,6 +87,7 @@ th {
           });
         }
         document.querySelector("#league-selector").addEventListener("change",async function() {
+          localStorage.setItem("currentLeague",this.value);
           let league = await getLeague(leagues[this.value-1]);
           buildForms(league);
           const forms = document.querySelectorAll("form");

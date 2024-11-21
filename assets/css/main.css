@@ -30,3 +30,134 @@
     border-radius: 4px;
     cursor: pointer;
 }
+
+#league-logo {
+    width: 50px;
+    height: 50px;
+}
+
+body,
+html {
+    margin: 0;
+}
+h1 {
+    margin: 20px 0;
+}
+
+#league-name {
+    margin: 0;
+}
+
+#league-title {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    margin-bottom: 20px;
+}
+main {
+    margin: auto;
+    width: 100%;
+    max-width: 900px;
+    min-height: 100vh;
+    background-color: white;
+    padding: 0 10px;
+}
+body {
+    background-color: rgb(240, 240, 240);
+    font-family: Arial;
+}
+table,
+td,
+tr,
+th {
+    border-top: 1px solid rgb(230, 230, 230);
+    border-bottom: 1px solid rgb(230, 230, 230);
+    border-collapse: collapse;
+    padding: 5px;
+}
+td,
+th {
+    text-align: center;
+}
+
+#league-table {
+    margin-bottom: 10px;
+}
+
+#league-table tbody tr:hover {
+    background-color: rgb(240, 240, 240);
+}
+
+#league-table thead {
+    background-color: rgb(230, 230, 230);
+}
+
+.league-position {
+    color: white;
+    font-weight: bold;
+    padding: 7px;
+    background-color: blue;
+    width: fit-content;
+    margin: auto;
+}
+
+.result-header {
+    background-color: skyblue;
+}
+
+.completed-fixture {
+    margin: 0 15px;
+    flex-basis: 25%;
+}
+#completed-fixtures {
+    display: flex;
+    flex-wrap: wrap;
+}
+.uncompleted-fixture {
+    text-align: center;
+    border-top: 1px solid rgb(230, 230, 230);
+    border-bottom: 1px solid rgb(230, 230, 230);
+    padding: 10px 0;
+}
+
+.uncompleted-fixture:nth-child(odd) {
+    background-color: rgb(245, 245, 245);
+}
+
+#league-table-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: calc(100vw - 20px);
+}
+
+#left-nav,
+#right-nav {
+    font-size: 40px;
+    cursor: pointer;
+}
+
+.mobile-headings {
+    display: none;
+}
+
+@media (max-width: 800px) {
+    .mobile-headings {
+        display: table-row;
+    }
+    .mobile-hidden {
+        display: none;
+    }
+    .desktop-headings {
+        display: none;
+    }
+    .completed-fixure {
+        flex-basis: 45%;
+    }
+}
+
+/* eleague-table {
+    animation: fadeOut, fadeIn;
+    animation-duration: 500ms, 500ms;
+    animation-delay: 0ms, 500ms;
+} */
