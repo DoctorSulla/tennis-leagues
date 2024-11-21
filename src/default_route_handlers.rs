@@ -5,8 +5,8 @@ use axum::{http::StatusCode, response::Html};
 use chrono::Utc;
 use cookie::time::Duration;
 use cookie::Cookie;
-use http::header;
 use http::header::HeaderMap;
+use http::{header, HeaderValue};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
@@ -190,7 +190,7 @@ pub struct VerificationDetails {
 pub async fn register(
     State(state): State<Arc<AppState>>,
     Json(registration_details): Json<RegistrationDetails>,
-) -> Result<Html<String>, AppError> {
+) -> Result<(StatusCode, HeaderMap, Html<String>), AppError> {
     // Validate all the fields
     validate_email(&registration_details.email)?;
     validate_username(&registration_details.username)?;
@@ -253,7 +253,17 @@ pub async fn register(
     .await?;
     send_email(state.clone(), email).await?;
 
-    Ok(Html("Registration successful".to_string()))
+    let mut header_map = HeaderMap::new();
+    header_map.insert(
+        header::LOCATION,
+        HeaderValue::from_str("/login.html").unwrap(),
+    );
+
+    Ok((
+        StatusCode::OK,
+        header_map,
+        Html("Registration successful".to_string()),
+    ))
 }
 
 pub async fn add_code(
@@ -278,7 +288,7 @@ pub async fn add_code(
 pub async fn login(
     State(state): State<Arc<AppState>>,
     Json(login_details): Json<LoginDetails>,
-) -> Result<(HeaderMap, Html<String>), AppError> {
+) -> Result<(StatusCode, HeaderMap, Html<String>), AppError> {
     let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ?")
         .bind(login_details.email)
         .fetch_optional(&state.db_connection_pool)
@@ -306,7 +316,16 @@ pub async fn login(
             .bind(expiry)
             .execute(&state.db_connection_pool)
             .await?;
-        return Ok((header_map, Html("Login successful".to_string())));
+        header_map.insert(
+            header::LOCATION,
+            HeaderValue::from_str("/admin/index.html").unwrap(),
+        );
+
+        return Ok((
+            StatusCode::OK,
+            header_map,
+            Html("Login successful".to_string()),
+        ));
     }
     Err(ErrorList::IncorrectPassword.into())
 }

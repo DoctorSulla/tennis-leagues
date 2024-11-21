@@ -13,6 +13,7 @@ async function jsonForms(e) {
     }
   }
   const options = {};
+  options.redirect;
   options.body = JSON.stringify(payload);
   options.method = method;
   options.headers = {
@@ -27,8 +28,15 @@ async function jsonForms(e) {
 }
 
 async function handleResponse(response) {
-  if (response.ok) {
+  console.log(response.status);
+  if (response.headers.get("Location")) {
+    location.assign(response.headers.get("Location"));
+  } else if (response.status == 205) {
+    window.location.reload();
+  } else if (response.ok) {
     const json = await response.json();
-    console.log(json);
+    // switch (json.type) {
+    //   case
+    // }
   }
 }

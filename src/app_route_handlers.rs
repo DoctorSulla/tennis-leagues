@@ -1,6 +1,6 @@
 use crate::{default_route_handlers::AppError, AppState};
 use axum::extract::{Json, Path, State};
-use http::StatusCode;
+use http::{HeaderMap, HeaderValue, StatusCode};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use sqlx::query::Query;
@@ -50,6 +50,7 @@ pub struct MatchResult {
     player_one_tiebreak_points: Option<i8>,
     player_two_tiebreak_points: Option<i8>,
     completed: i8,
+    winner: Option<i8>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -193,7 +194,7 @@ pub async fn put_result(
     .bind(match_result.player_two_id)
     .execute(&state.db_connection_pool)
     .await?;
-    Ok(StatusCode::NO_CONTENT)
+    Ok(StatusCode::RESET_CONTENT)
 }
 
 pub async fn generate_league_table(
@@ -215,12 +216,13 @@ pub async fn generate_league_table(
         player_one_tiebreak_points,
         player_two_tiebreak_points,
         completed,
+        winner,
         p1.name as 'player_one_name',
         p2.name as 'player_two_name'
         FROM fixtures f
         join players p1 on p1.rowid = player_one_id
         join players p2 on p2.rowid = player_two_id
-        WHERE f.league_id=1 and completed=0",
+        WHERE f.league_id=? and completed=0",
     )
     .bind(league_id)
     .fetch_all(&state.db_connection_pool)
@@ -239,12 +241,13 @@ pub async fn generate_league_table(
         player_one_tiebreak_points,
         player_two_tiebreak_points,
         completed,
+        winner,
         p1.name as 'player_one_name',
         p2.name as 'player_two_name'
         FROM fixtures f
         join players p1 on p1.rowid = player_one_id
         join players p2 on p2.rowid = player_two_id
-        WHERE f.league_id=1 and completed=1",
+        WHERE f.league_id=? and completed=1",
     )
     .bind(league_id)
     .fetch_all(&state.db_connection_pool)

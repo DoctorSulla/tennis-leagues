@@ -16,10 +16,20 @@ th {
 </style>
 <script src="/js/json_forms.js"></script>
 <script>
+
+    let leagues;
     async function getLeagues() {
         let request = await fetch("/api/leagues");
         let response = await request.json();
         return response;
+    }
+
+    function populateLeagues(leagues) {
+
+      const selector = document.querySelector("#league-selector");
+      for (let league of leagues) {
+        selector.innerHTML += `<option value="${league.league_id}">${league.league_name}</option>`;
+      }
     }
 
     async function getLeague(league) {
@@ -33,6 +43,7 @@ th {
     }
 
     function buildForms(league) {
+      document.querySelector("#result-forms").innerHTML = "";
       for (let fixture of league.uncompleted_fixtures) {
           let div = document.createElement("div");
           div.innerHTML = `<form action='/api/result' data-method='put'><table>
@@ -57,7 +68,8 @@ th {
     }
 
     document.addEventListener("DOMContentLoaded", async function () {
-        const leagues = await getLeagues();
+        leagues = await getLeagues();
+        populateLeagues(leagues);
         let league = await getLeague(leagues[0]);
         buildForms(league);
         const forms = document.querySelectorAll("form");
@@ -66,9 +78,23 @@ th {
             await jsonForms(e);
           });
         }
+        document.querySelector("#league-selector").addEventListener("change",async function() {
+          let league = await getLeague(leagues[this.value-1]);
+          buildForms(league);
+          const forms = document.querySelectorAll("form");
+          for (const form of forms) {
+            form.addEventListener("submit", async function (e) {
+              await jsonForms(e);
+            });
+          }
+        })
     });
 </script>
 <body>
+    <form>
+    <select id="league-selector">
+    </select>
+    </form>
 <div id="league-name"></div>
 <div id="result-forms"></div>
 </body>
