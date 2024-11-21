@@ -1,9 +1,8 @@
 use crate::{default_route_handlers::AppError, AppState};
 use axum::extract::{Json, Path, State};
-use http::{HeaderMap, HeaderValue, StatusCode};
+use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
-use sqlx::query::Query;
 use sqlx::Row;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -290,7 +289,7 @@ pub async fn generate_league_table(
 
     let league_table = compute_league_table(league_players, player_map, &completed_fixtures).await;
 
-    let mut league_table_and_fixtures = LeagueTableAndFixtures {
+    let league_table_and_fixtures = LeagueTableAndFixtures {
         completed_fixtures,
         uncompleted_fixtures,
         league_table,

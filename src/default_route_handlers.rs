@@ -11,7 +11,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
 use thiserror::Error;
-use tracing::{event, Level};
 use validations::*;
 
 use crate::utilities::*;
@@ -60,17 +59,17 @@ pub struct AppError(anyhow::Error);
 #[derive(Error, Debug)]
 pub enum ErrorList {
     #[error("Email must contain an @, be greater than 3 characters and less than 300 characters")]
-    InvalidEmail,
+    _InvalidEmail,
     #[error("Password must be between 8 and 100 characters")]
     InvalidPassword,
     #[error("Username must be between 3 and 100 characters")]
-    InvalidUsername,
+    _InvalidUsername,
     #[error("Your passwords do not match")]
     NonMatchingPasswords,
     #[error("That email is already registered")]
-    EmailAlreadyRegistered,
+    _EmailAlreadyRegistered,
     #[error("That username is already registered")]
-    UsernameAlreadyRegistered,
+    _UsernameAlreadyRegistered,
     #[error("Incorrect password")]
     IncorrectPassword,
     #[error("Incorrect username")]
@@ -187,84 +186,84 @@ pub struct VerificationDetails {
     code: String,
 }
 
-pub async fn register(
-    State(state): State<Arc<AppState>>,
-    Json(registration_details): Json<RegistrationDetails>,
-) -> Result<(StatusCode, HeaderMap, Html<String>), AppError> {
-    // Validate all the fields
-    validate_email(&registration_details.email)?;
-    validate_username(&registration_details.username)?;
-    validate_password(&registration_details.password)?;
-    is_unique(
-        &registration_details.username,
-        &registration_details.email,
-        state.clone(),
-    )
-    .await?;
-    if registration_details.password != registration_details.confirm_password {
-        return Err(ErrorList::NonMatchingPasswords.into());
-    }
+// pub async fn register(
+//     State(state): State<Arc<AppState>>,
+//     Json(registration_details): Json<RegistrationDetails>,
+// ) -> Result<(StatusCode, HeaderMap, Html<String>), AppError> {
+//     // Validate all the fields
+//     validate_email(&registration_details.email)?;
+//     validate_username(&registration_details.username)?;
+//     validate_password(&registration_details.password)?;
+//     is_unique(
+//         &registration_details.username,
+//         &registration_details.email,
+//         state.clone(),
+//     )
+//     .await?;
+//     if registration_details.password != registration_details.confirm_password {
+//         return Err(ErrorList::NonMatchingPasswords.into());
+//     }
 
-    event!(
-        Level::INFO,
-        "Attempting to create registration for email {} and username {}",
-        registration_details.email,
-        registration_details.username
-    );
+//     event!(
+//         Level::INFO,
+//         "Attempting to create registration for email {} and username {}",
+//         registration_details.email,
+//         registration_details.username
+//     );
 
-    // Create a registration
-    sqlx::query("INSERT INTO USERS(email,username,hashed_password) values(?,?,?)")
-        .bind(&registration_details.email)
-        .bind(&registration_details.username)
-        .bind(hash_password(registration_details.password.as_str()))
-        .execute(&state.db_connection_pool)
-        .await?;
+//     // Create a registration
+//     sqlx::query("INSERT INTO USERS(email,username,hashed_password) values(?,?,?)")
+//         .bind(&registration_details.email)
+//         .bind(&registration_details.username)
+//         .bind(hash_password(registration_details.password.as_str()))
+//         .execute(&state.db_connection_pool)
+//         .await?;
 
-    event!(
-        Level::INFO,
-        "Attempting to send a verification email to {}",
-        registration_details.email
-    );
+//     event!(
+//         Level::INFO,
+//         "Attempting to send a verification email to {}",
+//         registration_details.email
+//     );
 
-    // Send an email
-    let to = format!(
-        "{} <{}>",
-        registration_details.username, registration_details.email
-    );
+//     // Send an email
+//     let to = format!(
+//         "{} <{}>",
+//         registration_details.username, registration_details.email
+//     );
 
-    let code = generate_unique_id(8);
+//     let code = generate_unique_id(8);
 
-    let email = Email {
-        to: to.as_str(),
-        from: "registration@tld.com",
-        subject: String::from("Verify your email"),
-        body: format!(
-            "<p>Thank you for registering.</p> <p>Please verify for your email using the following code {}.</p>",
-            code
-        ),
-        reply_to: None,
-    };
-    add_code(
-        state.clone(),
-        &registration_details.email,
-        &code,
-        CodeType::EmailVerification,
-    )
-    .await?;
-    send_email(state.clone(), email).await?;
+//     let email = Email {
+//         to: to.as_str(),
+//         from: "registration@tld.com",
+//         subject: String::from("Verify your email"),
+//         body: format!(
+//             "<p>Thank you for registering.</p> <p>Please verify for your email using the following code {}.</p>",
+//             code
+//         ),
+//         reply_to: None,
+//     };
+//     add_code(
+//         state.clone(),
+//         &registration_details.email,
+//         &code,
+//         CodeType::EmailVerification,
+//     )
+//     .await?;
+//     send_email(state.clone(), email).await?;
 
-    let mut header_map = HeaderMap::new();
-    header_map.insert(
-        header::LOCATION,
-        HeaderValue::from_str("/login.html").unwrap(),
-    );
+//     let mut header_map = HeaderMap::new();
+//     header_map.insert(
+//         header::LOCATION,
+//         HeaderValue::from_str("/login.html").unwrap(),
+//     );
 
-    Ok((
-        StatusCode::OK,
-        header_map,
-        Html("Registration successful".to_string()),
-    ))
-}
+//     Ok((
+//         StatusCode::OK,
+//         header_map,
+//         Html("Registration successful".to_string()),
+//     ))
+// }
 
 pub async fn add_code(
     state: Arc<AppState>,
@@ -410,20 +409,20 @@ pub async fn password_reset_initiate(
     add_code(state.clone(), &user.email, &code, CodeType::PasswordReset).await?;
 
     // Send email
-    let email = Email {
-        to: &user.email,
-        from: "registration@tld.com",
-        subject: String::from("Password Reset"),
-        body: format!(
-            "<p>A password reset was requested for your account.</p> \
-            <p>Use this code to reset your password: {}</p> \
-            <p>If you did not request this, please ignore this email.</p>",
-            code
-        ),
-        reply_to: None,
-    };
+    // let _email = Email {
+    //     to: &user.email,
+    //     from: "registration@tld.com",
+    //     subject: String::from("Password Reset"),
+    //     body: format!(
+    //         "<p>A password reset was requested for your account.</p> \
+    //         <p>Use this code to reset your password: {}</p> \
+    //         <p>If you did not request this, please ignore this email.</p>",
+    //         code
+    //     ),
+    //     reply_to: None,
+    // };
 
-    send_email(state, email).await?;
+    // send_email(state, email).await?;
 
     Ok(Html("Password reset email sent".to_string()))
 }

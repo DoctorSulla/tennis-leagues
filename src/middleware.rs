@@ -3,7 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use futures_util::future::BoxFuture;
-use http::{header, HeaderMap, HeaderName, HeaderValue};
+use http::{header, HeaderMap, HeaderValue};
 use std::sync::Arc;
 use std::task::{Context, Poll};
 use tower::{Layer, Service};

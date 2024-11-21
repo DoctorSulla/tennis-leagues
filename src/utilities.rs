@@ -2,32 +2,28 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use lettre::{Message, Transport};
 use rand::{thread_rng, Rng};
-use std::sync::Arc;
 
-use crate::AppState;
-
-#[derive(Debug)]
-pub struct Email<'a> {
-    pub from: &'a str,
-    pub reply_to: Option<&'a str>,
-    pub to: &'a str,
-    pub subject: String,
-    pub body: String,
-}
-pub async fn send_email(state: Arc<AppState>, email: Email<'_>) -> Result<(), anyhow::Error> {
-    println!("The email to be sent to the user is {:?}", email);
-    // let email = Message::builder()
-    //     .from(email.from.parse()?)
-    //     .reply_to(email.reply_to.unwrap_or_default().parse()?)
-    //     .to(email.to.parse()?)
-    //     .subject(email.subject)
-    //     .body(email.body)?;
-    // Send the email via remote relay
-    //let _ = state.email_connection_pool.send(&email);
-    Ok(())
-}
+// #[derive(Debug)]
+// pub struct _Email<'a> {
+//     pub from: &'a str,
+//     pub reply_to: Option<&'a str>,
+//     pub to: &'a str,
+//     pub subject: String,
+//     pub body: String,
+// }
+// pub async fn send_email(state: Arc<AppState>, email: Email<'_>) -> Result<(), anyhow::Error> {
+//     println!("The email to be sent to the user is {:?}", email);
+//     // let email = Message::builder()
+//     //     .from(email.from.parse()?)
+//     //     .reply_to(email.reply_to.unwrap_or_default().parse()?)
+//     //     .to(email.to.parse()?)
+//     //     .subject(email.subject)
+//     //     .body(email.body)?;
+//     // Send the email via remote relay
+//     //let _ = state.email_connection_pool.send(&email);
+//     Ok(())
+// }
 
 pub fn hash_password(password: &str) -> String {
     let salt = SaltString::generate(&mut OsRng);

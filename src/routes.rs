@@ -34,7 +34,6 @@ pub fn get_protected_routes() -> Router<Arc<AppState>> {
 
 pub fn get_open_routes() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/account/register", post(default_route_handlers::register))
         .route("/account/login", post(default_route_handlers::login))
         .route(
             "/account/resetPassword",
