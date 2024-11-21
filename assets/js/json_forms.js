@@ -1,5 +1,4 @@
 async function jsonForms(e) {
-  console.log(e);
   e.preventDefault();
   const action = e.target.action;
   const method = e.target.dataset.method.toUpperCase();
@@ -28,7 +27,6 @@ async function jsonForms(e) {
 }
 
 async function handleResponse(response) {
-  console.log(response.status);
   if (response.headers.get("Location")) {
     location.assign(response.headers.get("Location"));
   } else if (response.status == 205) {

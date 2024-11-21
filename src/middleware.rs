@@ -70,7 +70,7 @@ where
                 let mut headers = HeaderMap::new();
                 headers.insert(
                     header::LOCATION,
-                    HeaderValue::from_str("/assets/login.html").unwrap(),
+                    HeaderValue::from_str("/login.html").unwrap(),
                 );
                 response = (headers, http::StatusCode::FOUND).into_response();
             }

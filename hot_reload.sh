@@ -1,4 +1,4 @@
 #!/bin/bash
-app_name=axumatic
+app_name=tennis
 pkill $app_name
 cargo run &

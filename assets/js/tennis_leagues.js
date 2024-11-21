@@ -116,10 +116,4 @@ document.addEventListener("DOMContentLoaded", async function () {
       const league = await getLeague(leagues[leagueIndex]);
       populateResponse(league);
     });
-
-  document
-    .querySelector("#league-table")
-    .addEventListener("animationend", function () {
-      console.log("The animation is finished");
-    });
 });
