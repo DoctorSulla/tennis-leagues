@@ -135,6 +135,14 @@ th {
 #right-nav {
     font-size: 40px;
     cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+svg {
+    width: 30px;
+    height: 30px;
 }
 
 .mobile-headings {

@@ -46,11 +46,12 @@
                 let request = await fetch(
                     "/api/admin/leagueTable/" + league.league_id,
                 );
-                if (!request.ok) {
-                    location.assign("/login.html");
+                if (request.headers.get("Location")) {
+                    location.assign(request.headers.get("Location"));
+                } else {
+                    let response = await request.json();
+                    return response;
                 }
-                let response = await request.json();
-                return response;
             }
 
             function buildForms(league) {

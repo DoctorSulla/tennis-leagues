@@ -72,7 +72,7 @@ where
                     header::LOCATION,
                     HeaderValue::from_str("/login.html").unwrap(),
                 );
-                response = (headers, http::StatusCode::FOUND).into_response();
+                response = (headers, http::StatusCode::UNAUTHORIZED).into_response();
             }
             Ok(response)
         })
